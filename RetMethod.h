@@ -724,6 +724,9 @@ public:
 
     virtual vector<double> extractKeyWord(int newDocId);
 
+    void computeWEFBModel(QueryModel &origRep,const DocIDSet &relDocs);
+    void genSample(vector<pair<int,double> > &pos,vector<pair<int,double> > &neg,vector<int> &VS,map<int,int> &word_count,const DocIDSet
+            &relDocs,QueryModel &origRep);
 
     double fangScore( DocIDSet &fbDocs, int docID, bool newNonRel)
     {
@@ -991,18 +994,24 @@ public:
     bool *relComputed;
     bool *nonRelComputed;
     int W2VecDimSize;
-    double alphaCoef,lambdaCoef,etaCoef,betaCoef;
-    //double **coefMatrix;
-    //vector<vector<double> >coefMatrix(100,vector<double>(100));
-    vector<vector<double> >coefMatrix;
-    //vector<double> queryAvgVec;
     vector<double> Vq;
-    vector<vector<double> > Vwn ,Vbwn;
-    double numberOfPositiveSelectedTopWord,numberOfNegativeSelectedTopWord;
-
+    vector<pair<int ,double> >pos, neg;
 
     vector<int> initRel;
     vector<int> initNonRel;
+
+
+    double alphaCoef,lambdaCoef,etaCoef,betaCoef;
+    double **coefMatrix;
+    //vector<vector<double> >coefMatrix(100,vector<double>(100));
+    //vector<vector<double> >coefMatrix;
+    //vector<double> queryAvgVec;
+
+    //vector<vector<double> > Vwn ,Vbwn;
+    double numberOfPositiveSelectedTopWord,numberOfNegativeSelectedTopWord;
+
+    ofstream inputfileee;
+
 };
 
 
