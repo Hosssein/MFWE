@@ -713,7 +713,7 @@ public:
                                  const lemur::api::DocIDSet &relDocs, const lemur::api::DocIDSet &nonRelDocs);
 
     virtual void updateProfile(lemur::api::TextQueryRep &origRep,
-                               vector<int> relJudglDoc ,vector<int> nonReljudgDoc);
+                               vector<int> relJudglDoc , vector<int> nonReljudgDoc, bool isRel);
     virtual void updateThreshold(lemur::api::TextQueryRep &origRep,
                                  vector<int> relJudglDoc ,vector<int> nonReljudgDoc ,int mode,double relSumScores , double nonRelSumScores);
     virtual float computeProfDocSim(lemur::api::TextQueryRep *origRep,int docID ,vector<int>relDocs ,vector<int>nonRelDocs , bool newNonRel,bool newRel);
@@ -993,6 +993,7 @@ public:
 
     bool *relComputed;
     bool *nonRelComputed;
+
     int W2VecDimSize;
     vector<double> Vq;
     vector<pair<int ,double> >pos, neg;
@@ -1010,7 +1011,7 @@ public:
     //vector<vector<double> > Vwn ,Vbwn;
     double numberOfPositiveSelectedTopWord,numberOfNegativeSelectedTopWord;
 
-    ofstream inputfileee;
+    //ofstream inputfileee;
 
 };
 
