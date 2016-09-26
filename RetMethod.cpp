@@ -282,8 +282,8 @@ lemur::retrieval::RetMethod::RetMethod(const Index &dbIndex,
     //Vbwn.assign(W2VecDimSize , 0.0);
     //Vwn.assign(W2VecDimSize , 0.0);
 
-    numberOfPositiveSelectedTopWord = 45.0;
-    numberOfNegativeSelectedTopWord = 20.0;
+    numberOfPositiveSelectedTopWord = 30.0;
+    numberOfNegativeSelectedTopWord = 80.0;
 
 
     /*
@@ -1378,7 +1378,7 @@ void lemur::retrieval::RetMethod::genSample(vector<pair<int,double> > &pos,vecto
     double *distQuery = new double[numTerms+1];
 
     double noisePr = qryParam.fbMixtureNoise;
-    double meanLL=1e-40;
+    //double meanLL=1e-40;
     set<int> neg_set;
 
     vector<pair<int,double> > scores;
@@ -1390,7 +1390,8 @@ void lemur::retrieval::RetMethod::genSample(vector<pair<int,double> > &pos,vecto
     }
 
     relDocs.startIteration();
-    while (relDocs.hasMore()){
+    while (relDocs.hasMore())
+    {
         int id;
         double pr;
         relDocs.nextIDInfo(id,pr);
@@ -1398,11 +1399,13 @@ void lemur::retrieval::RetMethod::genSample(vector<pair<int,double> > &pos,vecto
         DocModel *dm = dynamic_cast<DocModel *> (computeDocRep(id));
         TermInfo *info;
         tList->startIteration();
-        while (tList->hasMore()) {
+        while (tList->hasMore())
+        {
             info = tList->nextEntry();
             word_count[info->termID()] += info->count();
             feedback_voc_count +=info->count();
-            if(find(VS.begin(),VS.end(),info->termID())==VS.end()){
+            if(find(VS.begin(),VS.end(),info->termID())==VS.end())
+            {
                 VS.push_back(info->termID());
             }
             distQuery[info->termID()] += dm->seenProb(info->count(), info->termID());
@@ -1426,7 +1429,7 @@ void lemur::retrieval::RetMethod::genSample(vector<pair<int,double> > &pos,vecto
     int count_=0;
 
     int we_pos_n =  numberOfPositiveSelectedTopWord;
-    int we_neg_n = 100;// ,we_pos_n =30;/******************/
+    int we_neg_n = numberOfNegativeSelectedTopWord;//80,we_pos_n =30;/******************/
 
     for(int i=0;i<scores.size();i++){
         int x = scores[i].first;

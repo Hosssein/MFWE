@@ -194,11 +194,14 @@ void computeRSMethods(Index* ind)
     double start_thresh =startThresholdHM, end_thresh= endThresholdHM;
 
     for (double thresh = start_thresh ; thresh<=end_thresh ; thresh += intervalThresholdHM)
-        for(double fbCoef = 0.05 ; fbCoef <=0.99 ; fbCoef+=0.15)//7
+    {
+        //for(double fbCoef = 0.05 ; fbCoef <=0.99 ; fbCoef+=0.15)//7
+        {
+            double fbCoef = 0.05;
             for(double topPos = 10; topPos <= 50 ; topPos+=20)//4
             {
                 //double topPos = 30.0;
-                //double fbCoef = 0.05;
+
 
                 for(myMethod->alphaCoef = 0.01; myMethod->alphaCoef < 1; myMethod->alphaCoef+=0.2)
                 {
@@ -457,9 +460,10 @@ void computeRSMethods(Index* ind)
                         }
                     }
                 }
-
-
             }
+        }
+
+    }
     //#endif
     delete qs;
     delete myMethod;
