@@ -957,8 +957,8 @@ void lemur::retrieval::RetMethod::computeNearestTerm2Vec(vector<double> vec )
 
         vector<double>dtemp;
 
-        //if(wordEmbedding.find(i) != wordEmbedding.end()) //FIX ME!!!!
-        if(wordEmbedding[i].size() != 0)
+        if(wordEmbedding.find(i) != wordEmbedding.end()) //FIX ME!!!!
+            //if(wordEmbedding[i].size() != 0)
         {
             dtemp.assign(wordEmbedding[i].begin() ,wordEmbedding[i].end());
         }
@@ -1431,10 +1431,16 @@ void lemur::retrieval::RetMethod::genSample(vector<pair<int,double> > &pos,vecto
     int we_pos_n =  numberOfPositiveSelectedTopWord;
     int we_neg_n = numberOfNegativeSelectedTopWord;//80,we_pos_n =30;/******************/
 
-    for(int i=0;i<scores.size();i++){
+    map<int,vector<double> >::iterator hend = wordEmbedding.end();
+    for(int i=0;i<scores.size();i++)
+    {
         int x = scores[i].first;
         double s = scores[i].second;
-        if(wordEmbedding[x].size()){
+
+
+        //if(wordEmbedding[x].size())
+        if( wordEmbedding.find(x) != hend )
+        {
             neg.push_back(make_pair(x,s));
             neg_set.insert(x);
             //cerr<<" "<<ind.term(x)<<" "<<word_count[x]<<" "<<collectLM->prob(x)<<endl;
@@ -1476,12 +1482,15 @@ void lemur::retrieval::RetMethod::genSample(vector<pair<int,double> > &pos,vecto
         delete qt;
     }*/
     for(int i=0;i<scores.size();i++)
-        if(wordEmbedding[scores[i].first].size() && pos.size()<we_pos_n && neg_set.find(scores[i].first)==neg_set.end()){
-            int x = scores[i].first;
-            double s = scores[i].second;
-            pos.push_back(make_pair(x,s));
-            //cerr<<" "<<ind.term(x)<<" "<<word_count[x]<<" "<<collectLM->prob(x)<<endl;
-        }
+        if(pos.size()<we_pos_n)
+            if( neg_set.find(scores[i].first)==neg_set.end() )
+                if(wordEmbedding.find(scores[i].first) != wordEmbedding.end() )//if(wordEmbedding[scores[i].first].size() )
+                {
+                    int x = scores[i].first;
+                    double s = scores[i].second;
+                    pos.push_back(make_pair(x,s));
+                    //cerr<<" "<<ind.term(x)<<" "<<word_count[x]<<" "<<collectLM->prob(x)<<endl;
+                }
 
     delete[] distQuery;
     delete[] distQueryEst;
@@ -1724,13 +1733,25 @@ void lemur::retrieval::RetMethod::computeWEFBModel(QueryModel &origRep,const Doc
         Vq[x]=uv;/**************************/
     }
 
+    map<int , vector<double> >::iterator hend = wordEmbedding.end();
+    map<int , vector<double> >::iterator hf;
     for(int id=0;id<VS.size();id++)
     {
-        vector<double> vec = wordEmbedding[VS[id]];
-        int wn = VS[id];
-        if(vec.size()==0){
+        hf = wordEmbedding.find(VS[id]);
+        vector<double> vec;
+        if( hf != hend)
+            vec = hf->second;//wordEmbedding[VS[id]];//fix me
+        else
+        {
+            //cerr<<"DARIM MAGEEEEEEE222";
             continue;
         }
+        int wn = VS[id];
+
+        /*if(vec.size()==0){
+            cerr<<"DARIM MAGEEEEEEE";
+            continue;
+        }*/
         double sim =0.0;
         double euc =0.0;
         double norm1=0.0;

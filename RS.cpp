@@ -121,12 +121,12 @@ int main(int argc, char * argv[])
     default:
         if(DATASET == 0)//infile
         {
-            judgmentPath = "/home/hossein/Desktop/IIS/lemur/DataSets/Infile/Data/qrels_en";
-            //indexPath = "/home/hossein/Desktop/IIS/lemur/DataSets/Infile/Index/en_notStemmed_withoutSW/index.key";
-            //queryPath = "/home/hossein/Desktop/IIS/lemur/DataSets/Infile/Data/q_en_titleKeyword_notStemmed_en.xml";
+            judgmentPath = "/home/hossein/Desktop/IIS/Lemur/DataSets/Infile/Data/qrels_en";
+            //indexPath = "/home/hossein/Desktop/IIS/Lemur/DataSets/Infile/Index/en_notStemmed_withoutSW/index.key";
+            //queryPath = "/home/hossein/Desktop/IIS/Lemur/DataSets/Infile/Data/q_en_titleKeyword_notStemmed_en.xml";
 
-            indexPath ="/home/hossein/Desktop/IIS/lemur/DataSets/Infile/Index/en_Stemmed_withoutSW/index.key";
-            queryPath = "/home/hossein/Desktop/IIS/lemur/DataSets/Infile/Data/q_en_titleKeyword_en.stemmed.xml";
+            indexPath ="/home/hossein/Desktop/IIS/Lemur/DataSets/Infile/Index/en_Stemmed_withoutSW/index.key";
+            queryPath = "/home/hossein/Desktop/IIS/Lemur/DataSets/Infile/Data/q_en_titleKeyword_en.stemmed.xml";
 
         }else if(DATASET == 1)//ohsu
         {
@@ -195,20 +195,21 @@ void computeRSMethods(Index* ind)
 
     for (double thresh = start_thresh ; thresh<=end_thresh ; thresh += intervalThresholdHM)
     {
-        //for(double fbCoef = 0.05 ; fbCoef <=0.99 ; fbCoef+=0.15)//7
+        for(myMethod->betaCoef = 0.0; myMethod->betaCoef < 1 ; myMethod->betaCoef += 0.2)
         {
-            double fbCoef = 0.05;
-            for(double topPos = 10; topPos <= 50 ; topPos+=20)//4
+            for(myMethod->lambdaCoef = 0.0; myMethod->lambdaCoef < 1; myMethod->lambdaCoef += 0.2)
             {
-                //double topPos = 30.0;
-
-
-                for(myMethod->alphaCoef = 0.01; myMethod->alphaCoef < 1; myMethod->alphaCoef+=0.2)
+                //for(double fbCoef = 0.05 ; fbCoef <=0.99 ; fbCoef+=0.15)//7
                 {
-                    for(myMethod->betaCoef = 0.0; myMethod->betaCoef < 1 ; myMethod->betaCoef += 0.2)
+                    double fbCoef = 0.05;
+
+                    for(myMethod->alphaCoef = 0.01; myMethod->alphaCoef < 1; myMethod->alphaCoef+=0.2)
                     {
-                        for(myMethod->lambdaCoef = 0.0; myMethod->lambdaCoef < 1; myMethod->lambdaCoef += 0.2)
+                        for(double topPos = 10; topPos <= 50 ; topPos+=20)//4
                         {
+                            //double topPos = 30.0;
+
+
 
                             //for(double c1 = 0.10 ; c1<=0.36 ;c1+=0.05)//inc//6
                             double c1 = 0.30;
@@ -874,9 +875,13 @@ void computeQueryAvgVec(Document *d,RetMethod *myMethod )
         const std::map<int,vector<double> >::iterator it = wordEmbedding.find(qt->id());
 
         if(it != endIt)//found
+        {
             queryTerms.push_back(it->second);
+            //cerr<<"F:"<<it->first<<","<<it->second.size()<<" ";
+        }
         else
         {
+            //cerr<<"NotFound ";
             delete qt;
             continue;
         }
