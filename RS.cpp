@@ -179,7 +179,7 @@ void computeRSMethods(Index* ind)
 
 #define UpProf  1
 #define COMPAVG 1
-    string methodName = "Stemmed_NoSW_MFWE";
+    string methodName = "Stemmed_NoSW_MFWE_Coef";
 
     outFilename += methodName;
     //outFilename += "#topPosW:20-70(20)_CsNoT_NumbersT_CoefT";
@@ -199,9 +199,12 @@ void computeRSMethods(Index* ind)
         {
             for(myMethod->lambdaCoef = 0.0; myMethod->lambdaCoef < 1; myMethod->lambdaCoef += 0.2)
             {
-                //for(double fbCoef = 0.05 ; fbCoef <=0.99 ; fbCoef+=0.15)//7
+                for(double fbCoef = 0.05 ; fbCoef <=0.99 ; fbCoef+=0.15)//7
                 {
-                    double fbCoef = 0.05;
+                    //myMethod->alphaCoef = 0.8;
+                    //myMethod->betaCoef = 0.05;
+                    //myMethod->lambdaCoef = 0.05;
+                    //double fbCoef = 0.95;
 
                     for(myMethod->alphaCoef = 0.01; myMethod->alphaCoef < 1; myMethod->alphaCoef+=0.2)
                     {
