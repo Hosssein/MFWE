@@ -1543,6 +1543,7 @@ void lemur::retrieval::RetMethod::genSample(vector<pair<int,double> > &pos,vecto
         neg_set.insert(temp[i].first);
     }
 
+
 #endif
 
     sum=0.0;
@@ -1584,6 +1585,9 @@ void lemur::retrieval::RetMethod::genSample(vector<pair<int,double> > &pos,vecto
                     pos.push_back(make_pair(x,s));
                     //cerr<<" "<<ind.term(x)<<" "<<word_count[x]<<" "<<collectLM->prob(x)<<endl;
                 }
+
+    delete[] hdistQuery;
+    delete[] hdistQueryEst;
 
     delete[] distQuery;
     delete[] distQueryEst;

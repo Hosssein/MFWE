@@ -195,9 +195,9 @@ void computeRSMethods(Index* ind)
 
     for (double thresh = start_thresh ; thresh<=end_thresh ; thresh += intervalThresholdHM)
     {
-        for(myMethod->betaCoef = 0.0; myMethod->betaCoef < 1 ; myMethod->betaCoef += 0.2)
+        for(myMethod->betaCoef = 0.05; myMethod->betaCoef < 1 ; myMethod->betaCoef += 0.3)//4
         {
-            for(myMethod->lambdaCoef = 0.0; myMethod->lambdaCoef < 1; myMethod->lambdaCoef += 0.2)
+            for(myMethod->lambdaCoef = 0.05; myMethod->lambdaCoef < 1; myMethod->lambdaCoef += 0.3)//4
             {
                 //for(double fbCoef = 0.05 ; fbCoef <=0.99 ; fbCoef+=0.15)//7
                 {
@@ -207,9 +207,9 @@ void computeRSMethods(Index* ind)
                     double fbCoef = 0.95;
                     //double topPos = 30.0;
 
-                    for(myMethod->alphaCoef = 0.01; myMethod->alphaCoef < 1; myMethod->alphaCoef+=0.2)
+                    for(myMethod->alphaCoef = 0.05; myMethod->alphaCoef <= 1; myMethod->alphaCoef+=0.19)//5
                     {
-                        for(double topPos = 10; topPos <= 50 ; topPos+=20)//4
+                        for(double topPos = 20; topPos <= 65 ; topPos+=20)//3
                         {
                             //for(double c1 = 0.10 ; c1<=0.36 ;c1+=0.05)//inc//6
                             double c1 = 0.30;
