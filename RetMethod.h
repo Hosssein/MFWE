@@ -724,9 +724,9 @@ public:
 
     virtual vector<double> extractKeyWord(int newDocId);
 
-    void computeWEFBModel(QueryModel &origRep,const DocIDSet &relDocs);
-    void genSample(vector<pair<int,double> > &pos,vector<pair<int,double> > &neg,vector<int> &VS,map<int,int> &word_count,const DocIDSet
-            &relDocs,QueryModel &origRep);
+    void computeWEFBModel(QueryModel &origRep, const DocIDSet &relDocs, const DocIDSet &nonRelDocs);
+    void genSample(vector<pair<int,double> > &pos, vector<pair<int,double> > &neg, vector<int> &VS, map<int,int> &word_count, const DocIDSet
+            &relDocs, const DocIDSet &nonRelDocs, QueryModel &origRep);
 
     double fangScore( DocIDSet &fbDocs, int docID, bool newNonRel)
     {

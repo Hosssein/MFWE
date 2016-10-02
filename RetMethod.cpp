@@ -570,14 +570,21 @@ void lemur::retrieval::RetMethod::updateProfile(lemur::api::TextQueryRep &origRe
     IndexedRealVector rel;
     for (int i =0 ; i<relJudgDoc.size() ; i++)
         rel.PushValue(relJudgDoc[i],0);
-
     PseudoFBDocs  *relDocs;
     relDocs = new PseudoFBDocs(rel,relJudgDoc.size(),true);
+
+
+    IndexedRealVector nonRel;
+    for (int i =0 ; i<nonRelJudgDoc.size() ; i++)
+        nonRel.PushValue(nonRelJudgDoc[i],0);
+    PseudoFBDocs  *nonRelDocs;
+    nonRelDocs = new PseudoFBDocs(nonRel,nonRelJudgDoc.size(),true);
 
     //updateTextQuery(origRep, *relDocs ,*relDocs);
 
     QueryModel *qr = dynamic_cast<QueryModel *> (&origRep);
-    computeWEFBModel(*qr, *relDocs);
+    computeWEFBModel(*qr ,*relDocs, *nonRelDocs);
+
 
     //cerr<<"size: "<<Vq.size()<<endl;
     //computeNearestTerm2Vec(Vq);
@@ -1366,12 +1373,14 @@ void lemur::retrieval::RetMethod::computeRelNonRelDist(TextQueryRep &origRep,
 }
 
 void lemur::retrieval::RetMethod::genSample(vector<pair<int,double> > &pos,vector<pair<int,double> > &neg,vector<int> &VS,map<int,int> &word_count,const DocIDSet
-                                            &relDocs,QueryModel &origRep){
+                                            &relDocs,const DocIDSet &nonRelDocs, QueryModel &origRep){
+
+#define JAVID 0
 
     double sum;
     int feedback_voc_count=0;
     COUNT_T numTerms = ind.termCountUnique();
-    lemur::langmod::DocUnigramCounter *dCounter = new lemur::langmod::DocUnigramCounter(relDocs, ind);
+    //lemur::langmod::DocUnigramCounter *dCounter = new lemur::langmod::DocUnigramCounter(relDocs, ind);
 
     double distQueryNorm=0;
     double *distQueryEst = new double[numTerms+1];
@@ -1416,7 +1425,11 @@ void lemur::retrieval::RetMethod::genSample(vector<pair<int,double> > &pos,vecto
 
     int count =0;
 
+    int we_pos_n =  numberOfPositiveSelectedTopWord;
+    int we_neg_n = numberOfNegativeSelectedTopWord;//80,we_pos_n =30;/******************/
+
     // NEGATIVE
+#if 0
     scores.clear();
     for(map<int,int>::iterator it = word_count.begin();it!=word_count.end();it++){
         int i=it->first;
@@ -1426,10 +1439,9 @@ void lemur::retrieval::RetMethod::genSample(vector<pair<int,double> > &pos,vecto
 
     std::sort(scores.begin(),scores.end(),sort_pred());
     count=0;
-    int count_=0;
+    //int count_=0;
 
-    int we_pos_n =  numberOfPositiveSelectedTopWord;
-    int we_neg_n = numberOfNegativeSelectedTopWord;//80,we_pos_n =30;/******************/
+
 
     map<int,vector<double> >::iterator hend = wordEmbedding.end();
     for(int i=0;i<scores.size();i++)
@@ -1451,6 +1463,87 @@ void lemur::retrieval::RetMethod::genSample(vector<pair<int,double> > &pos,vecto
             break;
         }
     }
+#endif
+#if 1
+    //COUNT_T numTerms = ind.termCountUnique();
+
+    lemur::langmod::DocUnigramCounter *dCounter;
+    dCounter = new lemur::langmod::DocUnigramCounter(nonRelDocs, ind);
+
+
+    double *hdistQuery = new double[numTerms+1];
+    double *hdistQueryEst = new double[numTerms+1];
+
+
+    double hmeanLL=1e-40;
+    double hdistQueryNorm=0;
+
+    for (int i=1; i<=numTerms;i++)
+    {
+        hdistQueryEst[i] = rand()+0.001;
+        hdistQueryNorm += hdistQueryEst[i];
+    }
+
+    //double noisePr = 0.9; //qryParam.fbMixtureNoise; (lambda)
+    int itNum = qryParam.emIterations;
+    do {
+        // re-estimate & compute likelihood
+        double ll = 0;
+
+        for (int i=1; i<=numTerms;i++)
+        {
+            hdistQuery[i] = hdistQueryEst[i]/hdistQueryNorm;
+            hdistQueryEst[i] =0;
+        }
+
+        hdistQueryNorm = 0;
+
+        // compute likelihood
+        dCounter->startIteration();
+        while (dCounter->hasMore())
+        {
+            int wd; //dmf FIXME
+            double wdCt;
+            dCounter->nextCount(wd, wdCt);
+            ll += wdCt * log (noisePr*collectLM->prob(wd)  // P(w|C)
+                              + (1-noisePr)*hdistQuery[wd]); // P(w|thetha_F)
+        }
+        hmeanLL = 0.5*hmeanLL + 0.5*ll;
+        if (fabs((hmeanLL-ll)/hmeanLL)< 0.0001)
+            break;
+
+        // update counts
+        dCounter->startIteration();
+        while (dCounter->hasMore())
+        {
+            int wd; // dmf FIXME
+            double wdCt;
+            dCounter->nextCount(wd, wdCt);
+
+            double prTopic = (1-noisePr)*hdistQuery[wd]/
+                    ((1-noisePr)*hdistQuery[wd]+noisePr*collectLM->prob(wd));
+
+            double incVal = wdCt*prTopic;
+            hdistQueryEst[wd] += incVal;
+            hdistQueryNorm += incVal;
+        }
+    } while (itNum-- > 0);
+
+    neg.clear();
+    vector<pair<int,double> >temp;
+    for (int i=1; i<=numTerms; i++)
+        if (hdistQuery[i] > 0)
+            temp.push_back(make_pair(i,hdistQuery[i]));
+    std::sort(temp.begin(),temp.end(),sort_pred());
+
+    //neg.assign(temp.begin() , temp.begin() + numberOfNegativeSelectedTopWord );
+    for(int i = 0 ; i < numberOfNegativeSelectedTopWord ; i++)
+    {
+        neg.push_back(make_pair<int,double>(temp[i].first,temp[i].second)) ;
+        neg_set.insert(temp[i].first);
+    }
+
+#endif
 
     sum=0.0;
 
@@ -1497,9 +1590,8 @@ void lemur::retrieval::RetMethod::genSample(vector<pair<int,double> > &pos,vecto
     delete dCounter;
 }
 
-void lemur::retrieval::RetMethod::computeWEFBModel(QueryModel &origRep,const DocIDSet &relDocs)
+void lemur::retrieval::RetMethod::computeWEFBModel(QueryModel &origRep,const DocIDSet &relDocs,const DocIDSet &nonRelDocs)
 {
-
 
     //vector<double> q2v;
     double eps = 0.0000000001;
@@ -1524,85 +1616,33 @@ void lemur::retrieval::RetMethod::computeWEFBModel(QueryModel &origRep,const Doc
     set<int> pos_terms;
     set<int> neg_terms;
 
-    for (int i=1; i<=numTerms;i++) {
+    for (int i=1; i<=numTerms;i++)
+    {
         distQueryEst[i] = 0.0;//rand()+0.001;
         distQuery[i] = 0.0;//rand()+0.001;
     }
 
 
-    genSample(pos,neg,VS,word_count,relDocs,origRep);
+
+    //computeRelNonRelDist(origRep,relJudgDoc ,nonRelJudgDoc,false,true);
+    genSample(pos,neg,VS,word_count,relDocs,nonRelDocs,origRep);
 
 
     for(map<int,int>::iterator it = word_count.begin();it!=word_count.end();it++)
         tot_count +=it->second;
 
-    //cerr<<tot_count<<endl;
     int dim = 100;/********************/
-    //int i;
-
-    /*
-    int qcnt=0;
-    q2v.resize(dim);
-    for(int i=0;i<dim;i++)
-        q2v[i] = 0.0;
-
-
-    origRep.startIteration();
-    while (origRep.hasMore())
-    {
-        QueryTerm *qt = origRep.nextTerm();
-        int id = qt->id();
-        if(wordEmbedding[id].size()==0)
-            continue;
-
-        for(int i=0;i<dim;i++)
-        {
-            q2v[i] += wordEmbedding[id][i];
-            //cerr<<q2v[i]<<" "<<qcnt<<endl;
-        }
-        qcnt++;
-
-
-        //cerr<<ind.term(id)<<endl;
-        delete qt;
-    }
-
-    for(int i=0;i<dim;i++){
-        q2v[i] /= qcnt;
-        //cerr<<q2v[i]<<endl;
-    }
-    */
     long double W[dim][dim]; // Feedback Matrix
     long double WT[dim][dim]; // Transformation Matrix
     long double delta_W[dim][dim];
 
 
-    /*double set_alpha[] = {0.8};
-    double set_lambda[]={0.05};
-    double set_beta[] = {0.05};
-    double set_pos_p[] = {30};
-    double set_neg_n[] = {100};
-    //double set_coef[] = {0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0};
-    double set_coef[] = {0.9};*/
-
     double etha = 0.001;
-    //qryParam.fbCoeff = 0.5;/*********************************/
-    double alpha = 0.8;
-    double lambda = 0.75;
-    double beta = 0.05;
 
-    alpha = alphaCoef;
-    lambda = lambdaCoef;
-    beta = betaCoef;
+    double alpha = alphaCoef;
+    double lambda = lambdaCoef;
+    double beta = betaCoef;
 
-
-    /*cerr<<endl<<"NEG:\n";
-    for(int i=0;i<neg.size();i++)
-        cerr<< ind.term(neg[i].first)<<" "<<neg[i].second<<", ";
-    cerr<<endl<<"POS:\n";
-    for(int i=0;i<pos.size();i++)
-        cerr<< ind.term(pos[i].first)<<" "<<pos[i].second<<", ";
-    cerr<<endl;*/
 
     int n_iter = 100;
     long double change_prev = 100.0;
@@ -1709,14 +1749,12 @@ void lemur::retrieval::RetMethod::computeWEFBModel(QueryModel &origRep,const Doc
         for (int x = 0; x < dim; x++){
             for (int y = 0; y < dim; y++){
                 //W[x][y] -= delta_W[x][y];//FIXME
-                //change_now += pow(delta_W[x][y],2);
+
                 change_now += delta_W[x][y] * delta_W[x][y];
             }
         }
-        change_now = sqrt(change_now);//pow(change_now,1.0/4o);
-        //cerr<<" # "<<change_now<<" ";
+        change_now = sqrt(change_now);
     }
-    //cerr<<"(O o)"<<endl;
 
     sum=0.0;
     vector<double> WTvq;
@@ -1743,19 +1781,16 @@ void lemur::retrieval::RetMethod::computeWEFBModel(QueryModel &origRep,const Doc
             vec = hf->second;//wordEmbedding[VS[id]];//fix me
         else
         {
-            //cerr<<"DARIM MAGEEEEEEE222";
             continue;
         }
         int wn = VS[id];
 
-        /*if(vec.size()==0){
-            cerr<<"DARIM MAGEEEEEEE";
-            continue;
-        }*/
+
         double sim =0.0;
         double euc =0.0;
         double norm1=0.0;
-        for(int i=0;i<dim;i++){
+        for(int i=0;i<dim;i++)
+        {
             //euc += pow(vec[i]-WTvq[i],2);
             euc += (vec[i]-WTvq[i])*(vec[i]-WTvq[i]);
             //euc += pow(vec[i]-q2v[i],2);
