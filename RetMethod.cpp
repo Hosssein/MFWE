@@ -1429,7 +1429,7 @@ void lemur::retrieval::RetMethod::genSample(vector<pair<int,double> > &pos,vecto
     int we_neg_n = numberOfNegativeSelectedTopWord;//80,we_pos_n =30;/******************/
 
     // NEGATIVE
-#if 0
+#if 1
     scores.clear();
     for(map<int,int>::iterator it = word_count.begin();it!=word_count.end();it++){
         int i=it->first;
@@ -1464,7 +1464,7 @@ void lemur::retrieval::RetMethod::genSample(vector<pair<int,double> > &pos,vecto
         }
     }
 #endif
-#if 1
+#if 0
     //COUNT_T numTerms = ind.termCountUnique();
 
     lemur::langmod::DocUnigramCounter *dCounter;
@@ -1586,12 +1586,12 @@ void lemur::retrieval::RetMethod::genSample(vector<pair<int,double> > &pos,vecto
                     //cerr<<" "<<ind.term(x)<<" "<<word_count[x]<<" "<<collectLM->prob(x)<<endl;
                 }
 
-    delete[] hdistQuery;
-    delete[] hdistQueryEst;
+    //delete[] hdistQuery;
+    //delete[] hdistQueryEst;
 
     delete[] distQuery;
     delete[] distQueryEst;
-    delete dCounter;
+    //delete dCounter;
 }
 
 void lemur::retrieval::RetMethod::computeWEFBModel(QueryModel &origRep,const DocIDSet &relDocs,const DocIDSet &nonRelDocs)

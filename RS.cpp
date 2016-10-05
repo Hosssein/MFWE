@@ -179,10 +179,10 @@ void computeRSMethods(Index* ind)
 
 #define UpProf  1
 #define COMPAVG 1
-    string methodName = "Stemmed_NoSW_MFWE_NonRel_Coef0.95";
+    string methodName = "Stemmed_NoSW_MFWE_Coll_Coef0.05-0.99(0.15)";
 
     outFilename += methodName;
-    //outFilename += "#topPosW:20-70(20)_CsNoT_NumbersT_CoefT";
+    //outFilename += "#topPosW:20-65(20)_CsNoT_NumbersT_CoefT";
 
     ofstream out(outFilename.c_str());
 
@@ -195,16 +195,16 @@ void computeRSMethods(Index* ind)
 
     for (double thresh = start_thresh ; thresh<=end_thresh ; thresh += intervalThresholdHM)
     {
-        for(myMethod->betaCoef = 0.05; myMethod->betaCoef < 1 ; myMethod->betaCoef += 0.3)//4
+        //for(myMethod->betaCoef = 0.05; myMethod->betaCoef < 1 ; myMethod->betaCoef += 0.3)//4
         {
             for(myMethod->lambdaCoef = 0.05; myMethod->lambdaCoef < 1; myMethod->lambdaCoef += 0.3)//4
             {
-                //for(double fbCoef = 0.05 ; fbCoef <=0.99 ; fbCoef+=0.15)//7
+                for(double fbCoef = 0.05 ; fbCoef <=0.99 ; fbCoef+=0.15)//7
                 {
                     //myMethod->alphaCoef = 0.81;
-                    //myMethod->betaCoef = 0.2;
+                    myMethod->betaCoef = 0.35;
                     //myMethod->lambdaCoef = 0.0;
-                    double fbCoef = 0.95;
+                    //double fbCoef = 0.95;
                     //double topPos = 30.0;
 
                     for(myMethod->alphaCoef = 0.05; myMethod->alphaCoef <= 1; myMethod->alphaCoef+=0.19)//5
